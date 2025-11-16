@@ -73,6 +73,10 @@ Hardware
 
 ---
 
-## 📬 Contato
+## 📬 Colaboradores e Contato
 
-Caso tenha dúvidas, melhorias ou sugestões, entre em contato pelo próprio GitHub ou abra uma *issue*.
+André Henrique Tarquino de Oliveira
+
+Leandro Sossai de Oliveira
+
+Samuel Santana Lucas
