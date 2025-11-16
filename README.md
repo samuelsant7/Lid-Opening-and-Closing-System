@@ -43,9 +43,9 @@ O projeto combina duas formas de acionamento:
 
 As imagens abaixo mostram o hardware real montado em protoboard:
 
-![Foto 1](imagens/foto1.png)
-![Foto 2](imagens/foto2.png)
-![Foto 3](imagens/foto3.png)
+![servo_3](https://github.com/user-attachments/assets/9351039b-6f3a-4166-98ef-4a702cd8fc2c)
+![servo_2](https://github.com/user-attachments/assets/3cbb780d-b900-40bf-8a12-7e40d4cbee69)
+![servo_1](https://github.com/user-attachments/assets/7f57429d-8445-44b5-9229-5f286c690f75)
 
 *(As imagens já foram anexadas ao repositório dentro da pasta `/docs/imagens`)*
 
