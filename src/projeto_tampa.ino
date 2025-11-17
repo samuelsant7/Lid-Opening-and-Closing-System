@@ -1,122 +1,186 @@
-#include <ESP8266WiFi.h>
-#include <Servo.h>
+#include <Arduino.h>
+#include <ESP32Servo.h>
+#include <WiFi.h>
 
-//Wi-fi
-const char* ssid = "ServoESP";       
-const char* password = "12345678";   
+// ====== CONFIGURAÇÃO ======
+const char* ssid = "auau";
+const char* password = "miau";
 
+// Pinos (ESP32)
+const int servoPin = 23;
+const int trigPin  = 2;
+const int echoPin  = 16;
+
+// Ângulos / limites
+const int anguloFechado = 90;
+const int anguloAberto  = 0;
+const int distanciaLimite = 50; // cm
+
+// Tempos
+const unsigned long tempoAbertoMs = 5000; // tempo que a tampa fica aberta ao detectar objeto
+
+// Estado
+bool aberta = false;
+unsigned long abertaDesde = 0;
+
+long duracao;
+int distancia;
+int posAtual = anguloFechado;
+
+Servo servo; 
 WiFiServer server(80);
-
-//Servo-Motorr
-Servo servo;
-int pos = 0;
-bool aberto = false;     
-unsigned long ultimaAbertura = 0;
-
-
-// Sensor ultrassônico HC-SR04
-#define TRIGGER D5
-#define ECHO    D6
-
-int distanciaAbertura = 30;
-
-unsigned long tempoFechar = 10000; 
-
 
 void setup() {
   Serial.begin(115200);
 
-  servo.attach(D4);
-  servo.write(0);  
+  // Servo
+  servo.attach(servoPin);
+  servo.write(anguloFechado);
+  posAtual = anguloFechado;
 
-  pinMode(TRIGGER, OUTPUT);
-  pinMode(ECHO, INPUT);
-  
+  // Sensor
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  // WiFi AP
   WiFi.softAP(ssid, password);
   server.begin();
 
   Serial.println();
-  Serial.print("Rede criada: ");
+  Serial.print("AP criado: ");
   Serial.println(ssid);
-  Serial.println("Acesse: http://192.168.4.1");
+  Serial.println("Conecte-se e abra 192.168.4.1");
+  Serial.println("Simulador iniciado!");
 }
 
+void abrirTampa() {
+  if (!aberta) {
+    abrirAnimado();
+    aberta = true;
+    abertaDesde = millis();
+    Serial.println("Tampa aberta (por sensor/web)");
+  }
+}
 
-//dist
-long medirDistancia() {
-  digitalWrite(TRIGGER, LOW);
+void fecharTampa() {
+  if (aberta) {
+    fecharAnimado();
+    aberta = false;
+    Serial.println("Tampa fechada (por sensor/web)");
+  }
+}
+
+// Anima a abertura (suave)
+void abrirAnimado() {
+  for (int p = posAtual; p >= anguloAberto; p--) { // decrementa se anguloAberto < anguloFechado
+    servo.write(p);
+    delay(8);
+  }
+  posAtual = anguloAberto;
+}
+
+// Anima o fechamento (suave)
+void fecharAnimado() {
+  for (int p = posAtual; p <= anguloFechado; p++) {
+    servo.write(p);
+    delay(8);
+  }
+  posAtual = anguloFechado;
+}
+
+int medirDistancia() {
+  // Trigger pulse
+  digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
-  digitalWrite(TRIGGER, HIGH);
+  digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(TRIGGER, LOW);
+  digitalWrite(trigPin, LOW);
 
-  long duracao = pulseIn(ECHO, HIGH);
-  long distancia = duracao * 0.034 / 2; 
+  // pulseIn com timeout (30 ms -> evita bloqueio indefinido)
+  duracao = pulseIn(echoPin, HIGH, 30000);
+  if (duracao == 0) return -1; // sem eco (out of range)
+  distancia = duracao * 0.034 / 2;
   return distancia;
 }
 
-void loop() {
-
-  long distancia = medirDistancia();
-
-  if (distancia > 0 && distancia <= distanciaAbertura) {
-    if (!aberto) {
-      abrir();
-      aberto = true;
-      ultimaAbertura = millis();
-    }
-  }
-
-  if (aberto && millis() - ultimaAbertura >= tempoFechar) {
-    fechar();
-    aberto = false;
-  }
-
-  //interface
+void handleClient() {
   WiFiClient client = server.available();
   if (!client) return;
 
   String request = client.readStringUntil('\r');
   client.flush();
 
-  if (request.indexOf("/toggle") != -1) {
-    if (aberto) fechar();
-    else abrir();
-    aberto = !aberto;
-    ultimaAbertura = millis();
+  Serial.print("Request: ");
+  Serial.println(request);
+
+  // Rotas: /abrir, /fechar, /toggle
+  if (request.indexOf("GET /abrir ") != -1) {
+    abrirTampa();
+  } else if (request.indexOf("GET /fechar ") != -1) {
+    fecharTampa();
+  } else if (request.indexOf("GET /toggle ") != -1) {
+    if (aberta) fecharTampa();
+    else abrirTampa();
   }
 
-  //pag
+  // Resposta HTML
   client.println("HTTP/1.1 200 OK");
-  client.println("Content-Type: text/html\n");
+  client.println("Content-Type: text/html; charset=UTF-8");
+  client.println("Connection: close");
+  client.println("");
   client.println("<!DOCTYPE html><html><head><meta charset='UTF-8'>");
+  client.println("<meta name='viewport' content='width=device-width, initial-scale=1'>");
+  client.println("<title>Controle Servo</title>");
   client.println("<style>");
-  client.println("body{font-family:Arial;text-align:center;background:#eef;padding-top:40px;}");
-  client.println("button{font-size:22px;padding:12px 26px;border:none;border-radius:10px;background:#007bff;color:white;cursor:pointer;}");
-  client.println("button:hover{background:#0056b3;}");
+  client.println("body{font-family:Arial,Helvetica,sans-serif;text-align:center;padding:20px;background:#f4f7fb}");
+  client.println("button{font-size:20px;padding:12px 24px;margin:8px;border:none;border-radius:8px;cursor:pointer}");
+  client.println(".open{background:#28a745;color:white} .close{background:#dc3545;color:white} .toggle{background:#007bff;color:white}");
   client.println("</style></head><body>");
-  client.println("<h1>Controle da Tampa Automática</h1>");
-  client.println("<p>Estado atual: <b>" + String(aberto ? "Aberto" : "Fechado") + "</b></p>");
-  client.println("<button onclick=\"location.href='/toggle'\">" + String(aberto ? "Fechar" : "Abrir") + "</button>");
-  client.println("<p style='margin-top:20px;'>Distância detectada: " + String(distancia) + " cm</p>");
+  client.println("<h1>Controle de Servo via WiFi</h1>");
+  client.printf("<p>Estado: <strong>%s</strong></p>\n", (aberta ? "Aberto" : "Fechado"));
+  client.printf("<p>Distância atual: <strong>%s cm</strong></p>\n", (distancia>0?String(distancia):String("---")));
+  client.println("<p>");
+  client.println("<a href='/abrir'><button class='open'>Abrir</button></a>");
+  client.println("<a href='/fechar'><button class='close'>Fechar</button></a>");
+  client.println("<a href='/toggle'><button class='toggle'>Alternar</button></a>");
+  client.println("</p>");
+  client.println("<p>Ao detectar objeto a tampa abre automaticamente por 5s.</p>");
   client.println("</body></html>");
+
+  delay(1);
+  client.stop();
 }
 
+unsigned long ultimaMedida = 0;
+const unsigned long intervaloMedida = 300; // ms
 
-void abrir() {
-  Serial.println("Abrindo tampa...");
-  for (pos = 0; pos <= 90; pos++) {
-    servo.write(pos);
-    delay(10);
-  }
-  Serial.println("Tampa aberta.");
-}
+void loop() {
+  // 1) tratar requisições web a cada iteração
+  handleClient();
 
-void fechar() {
-  Serial.println("Fechando tampa...");
-  for (pos = 90; pos >= 0; pos--) {
-    servo.write(pos);
-    delay(10);
+  // 2) medir distância periodicamente (sem bloquear)
+  unsigned long agora = millis();
+  if (agora - ultimaMedida >= intervaloMedida) {
+    ultimaMedida = agora;
+    int d = medirDistancia();
+    distancia = d;
+    if (d > 0) {
+      Serial.print("Distância: ");
+      Serial.println(d);
+      if (d < distanciaLimite && !aberta) {
+        abrirTampa();
+      }
+    } else {
+      // sem leitura válida
+      // Serial.println("Sem leitura do sensor");
+    }
   }
-  Serial.println("Tampa fechada.");
+
+  // 3) fechar automaticamente após tempoAbertoMs
+  if (aberta && (millis() - abertaDesde >= tempoAbertoMs)) {
+    fecharTampa();
+  }
+
+  // Pequena pausa para economia (e evitar loop frenético)
+  delay(10);
 }
