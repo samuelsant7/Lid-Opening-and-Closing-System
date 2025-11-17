@@ -49,9 +49,16 @@ Conectado ao Servo Motor
 ![servo_3](https://github.com/user-attachments/assets/9351039b-6f3a-4166-98ef-4a702cd8fc2c)
 
 
-Funcionamento da Interface, e do Sensor Ultrassônico 
+Funcionamento da Interface, e do Sensor Ultrassônico (Objeto Próximo)
 
 ![servo_2](https://github.com/user-attachments/assets/3cbb780d-b900-40bf-8a12-7e40d4cbee69)
+
+
+Funcionamento da Interface, e do Sensor Ultrassônico (Objeto Distante)
+
+![Servo4](https://github.com/user-attachments/assets/4942b277-6397-4c7e-8289-3b36fd3d305b)
+
+
 
 Hardware 
 
