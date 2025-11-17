@@ -5,7 +5,7 @@ Descrição da arquitetura do sistema de abertura automática de tampa servo mot
 
 O sistema permite dois modos de abertura:
 
-* **Aproximação (sensor ultrassônico)** — quando presente no projeto.
+* **Aproximação (sensor ultrassônico)**
 * **Comando via Wi-Fi** — através de uma interface Web simples servida pelo próprio ESP8266.
 
 ## 2. Componentes Principais
