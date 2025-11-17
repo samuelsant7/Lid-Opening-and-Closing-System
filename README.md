@@ -1,6 +1,6 @@
 # Sistema de Abertura Automática de Tampa
 
-Este repositório documenta um projeto desenvolvido para a disciplina de **Programação de Ambientes Embarcados**, cujo objetivo foi criar um sistema automático de abertura de porta/tampa utilizando **ESP8266 (NodeMCU)**, **sensor ultrassônico HC-SR04** e **servo motor SG90**, com controle adicional via **interface Wi-Fi**.
+Este repositório documenta um projeto desenvolvido para a disciplina de **Programação para Sistemas Embarcados**, cujo objetivo foi criar um sistema automático de abertura de porta/tampa utilizando **ESP8266 (NodeMCU)**, **sensor ultrassônico HC-SR04** e **servo motor SG90**, com controle adicional via **interface Wi-Fi**.
 
 
 ---
@@ -75,8 +75,9 @@ Hardware
 
 ## 📬 Colaboradores e Contato
 
-André Henrique Tarquino de Oliveira
+André Henrique Tarquino de Oliveira - andre.oliveira@unisantos.br
 
-Leandro Sossai de Oliveira
+Leandro Sossai de Oliveira          - leandro.sossai@unisantos.br
 
-Samuel Santana Lucas
+Samuel Santana Lucas                - samuelsantana@unisantos.br
+
