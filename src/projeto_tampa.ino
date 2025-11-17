@@ -27,7 +27,7 @@ void setup() {
   Serial.begin(115200);
 
   servo.attach(D4);
-  servo.write(0);  // posição inicial
+  servo.write(0); 
   
   pinMode(TRIGGER, OUTPUT);
   pinMode(ECHO, INPUT);
