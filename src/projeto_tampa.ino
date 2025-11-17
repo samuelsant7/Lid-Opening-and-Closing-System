@@ -11,7 +11,7 @@ WiFiServer server(80);
   
 Servo servo;
 int pos = 0;
-bool aberto = false;     // estado da tampa
+bool aberto = false;   
 unsigned long ultimaAbertura = 0;
 
 // Sensor ultrassônico
